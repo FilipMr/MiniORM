@@ -20,5 +20,6 @@ Supports database connection, basic CRUD, simple query building, and SQLite via 
 ```sh
 mkdir build
 cd build
+cmake ..
 make
 ./main
