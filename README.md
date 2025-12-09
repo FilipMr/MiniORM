@@ -15,7 +15,7 @@ Supports database connection, basic CRUD, simple query building, and SQLite via 
 
 ---
 
-## Build (Make)
+## Build (CMake)
 
 ```sh
 mkdir build
