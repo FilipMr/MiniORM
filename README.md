@@ -18,5 +18,7 @@ Supports database connection, basic CRUD, simple query building, and SQLite via 
 ## Build (Make)
 
 ```sh
+mkdir build
+cd build
 make
-./bin/miniorm
+./main
