@@ -4,6 +4,8 @@ A small educational ORM written in C++.
 Supports basic CRUD, simple query building, map tables to classes.
 Works on SQLite via sqlite3 library adding an abstract DB layer.
 
+This Mini ORM handles  the following formats: 
+
 ---
 
 ## Features
@@ -12,6 +14,15 @@ Works on SQLite via sqlite3 library adding an abstract DB layer.
 - Map rows ↔ objects
 - Handle CRUD automatically
 - OOP architecture
+
+---
+
+## Available types
+This Mini ORM handles the following types: 
+- int
+- double
+- string
+- char
 
 ---
 
