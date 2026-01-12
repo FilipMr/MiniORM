@@ -2,7 +2,7 @@
 
 A small educational ORM written in C++.
 Supports basic CRUD, simple query building, map tables to classes.
-Works on SQLite via sglite3 library adding an abstract DB layer.
+Works on SQLite via sqlite3 library adding an abstract DB layer.
 
 ---
 
