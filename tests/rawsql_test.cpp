@@ -29,7 +29,42 @@ void query(sqlite3* db, const std::string& sql) {
 }
 
 int main() {
-    std::cout << "Not ready yet" << std::endl;
+    sqlite3* db = nullptr;
+    sqlite3_open("example.db", &db);
 
+    // Create table
+    exec(db,
+        "CREATE TABLE IF NOT EXISTS users ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "name TEXT,"
+        "age INTEGER);"
+    );
+
+    // Clean previous data
+    exec(db, "DELETE FROM users;");
+
+    // CREATE
+    exec(db, "INSERT INTO users(name, age) VALUES('Alice', 30);");
+    exec(db, "INSERT INTO users(name, age) VALUES('Bob', 25);");
+
+    std::cout << std::endl;
+    std::cout << "After insert" << std::endl;
+    query(db, "SELECT * FROM users;");
+
+    // UPDATE
+    exec(db, "UPDATE users SET age=31 WHERE name='Alice';");
+
+    std::cout << std::endl;
+    std::cout << "After update" << std::endl;
+    query(db, "SELECT * FROM users;");
+
+    // DELETE
+    exec(db, "DELETE FROM users WHERE name='Bob';");
+
+    std::cout << std::endl;
+    std::cout << "After delete" << std::endl;
+    query(db, "SELECT * FROM users;");
+
+    sqlite3_close(db);
     return 0;
 }
