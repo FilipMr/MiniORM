@@ -2,6 +2,7 @@
 #include <string>
 #include <sqlite3.h>
 
+
 void exec(sqlite3* db, const std::string& sql) {
     char* err = nullptr;
     int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err);
