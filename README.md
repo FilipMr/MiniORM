@@ -7,6 +7,7 @@ Works on SQLite via sglite3 library adding an abstract DB layer.
 ---
 
 ## Features
+- Database connection
 - Map tables ↔ C++ classes
 - Map rows ↔ objects
 - Handle CRUD automatically
