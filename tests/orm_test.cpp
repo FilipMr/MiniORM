@@ -13,7 +13,7 @@ I did not implemet select_all and delete_all we can only do those by ids, so for
 #include <sqlite3.h>
 #include "../src/MiniOrm.hpp"
 
-//for displaying columns
+//for displaying columns and values
 int printCallback(void*, int argc, char** argv, char** colName) {
     for (int i = 0; i < argc; i++) {
         std::cout << colName[i] << "=" << (argv[i] ? argv[i] : "NULL");
@@ -34,7 +34,6 @@ void query(sqlite3* db, const std::string& sql) {
     }
 }
 
-
 //here we define how the table actually looks
 class User : public fm::Model {
 public:
@@ -52,7 +51,7 @@ int main() {
     sqlite3* db = nullptr;
     sqlite3_open("example_orm.db", &db);
 
-    //as i dont have a migration system a use a temporary object to create a table for better visualisation
+    //as i dont have a migration system i use a temporary object to create a table for better visualisation
     User users;
 
     users.create_table(db);
