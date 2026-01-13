@@ -17,7 +17,7 @@ std::string get_sql_type() {
         return "REAL";
     }
     else if constexpr (std::is_same_v<T, std::string>) {
-        return "TEXT":
+        return "TEXT";
     }
     else {
         return "BLOB";
@@ -26,12 +26,8 @@ std::string get_sql_type() {
 
 // Abstract Column Interface to store diffrent columns
 struct IColumn {
-    virtual std::string get_name() {
-        const = 0;
-    } 
-    virtual std::string get_definition() {
-        const = 0;
-    }
+    virtual std::string get_name() const = 0;
+    virtual std::string get_definition() const = 0;
     virtual ~IColumn() = default;
 };
 
@@ -90,5 +86,14 @@ public:
         : name(std::move(col_name)), constraints(std::move(col_constraints)) {
         owner->register_column(this);
     }
+
+    std::string get_name() const override { 
+        return name; 
+    }
+
+    std::string get_definition() const override {
+        return name + " " + get_sql_type<T>() + (constraints.empty() ? "" : " " + constraints);
+    }
+};
 
 }
