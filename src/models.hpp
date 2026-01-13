@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <type_traits>
+#include <sqlite3.h>
 
 namespace fm {
 
@@ -34,6 +35,31 @@ struct IColumn {
     virtual ~IColumn() = default;
 };
 
+class Model {
+protected:
+    std::string table_name;
+    std::vector<IColumn*> columns;
 
+    bool execute_sql(sqlite3* db, const std::string& sql) {
+        char* errMsg = nullptr;
+        int rc = sqlite3_exec(db, sql.c_str(), 0, 0, &errMsg);
+        
+        if (rc != SQLITE_OK) {
+            std::cerr << "SQL Error in " << table_name << ": " << errMsg << std::endl;
+            std::cerr << "Query was: " << sql << std::endl;
+            sqlite3_free(errMsg);
+            return false;
+        }
+        return true;
+    }
+}
+public:
+    Model(std::string t_name) : table_name(std::move(t_name)) {
 
+    }
+
+    void register_column(IColumn* col) {
+        columns.push_back(col);
+    }
+    
 }
