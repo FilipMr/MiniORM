@@ -52,7 +52,7 @@ protected:
         }
         return true;
     }
-}
+
 public:
     Model(std::string t_name) : table_name(std::move(t_name)) {
 
@@ -67,7 +67,7 @@ public:
         ss << "CREATE TABLE IF NOT EXISTS " << table_name << " (";
         for (size_t i = 0; i < columns.size(); ++i) {
             ss << columns[i]->get_definition();
-            
+
             if (i < columns.size() - 1) {
                 ss << ", ";
             }
@@ -76,4 +76,19 @@ public:
         
         return execute_sql(db, ss.str());
     }
+}
+
+template <typename T>
+class Column : public IColumn {
+private:
+    std::string name;
+    std::string constraints;
+    T value; 
+
+public:
+    Column(Model* owner, std::string col_name, std::string col_constraints = "") 
+        : name(std::move(col_name)), constraints(std::move(col_constraints)) {
+        owner->register_column(this);
+    }
+
 }
