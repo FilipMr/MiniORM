@@ -20,28 +20,22 @@ namespace fm {
  */
 class Model {
 protected:
-    std::string tableName;            /**< SQLite table name */
-    std::vector<IColumn*> columns;    /**< Registered columns for this model */
+    std::string tableName;           
+    std::vector<IColumn*> columns;    
 
 public:
     /**
-     * @brief Constructs a model with a default table name.
-     *
-     * Default table name is `"DefaultTable"`.
+     * @brief Default constructor with default table name.
      */
     Model() : tableName("DefaultTable") {}
 
     /**
-     * @brief Constructs a model with a specific table name.
-     *
-     * @param tabName Name of the SQLite table.
+     * @brief Constructor with a specific table name.
      */
     Model(std::string tabName) : tableName(std::move(tabName)) {}
 
     /**
-     * @brief Sets/changes the table name for this model.
-     *
-     * @param tabName New SQLite table name.
+     * @brief Setter for the table name.
      */
     void setTableName(std::string tabName) {
         tableName = std::move(tabName);
@@ -49,32 +43,24 @@ public:
 
     /**
      * @brief Registers a column with this model.
-     *
-     * Columns call this automatically in their constructor:
-     * @code
-     * owner->register_column(this);
-     * @endcode
-     *
-     * @param col Pointer to a column (must remain valid for the Model lifetime).
+     * Columns call this automatically in their constructor
      *
      * @warning
-     * The Model does not own the column pointers and does not delete them.
-     * Also, registration order matters: columns[0] is treated as primary key.
+     * registration order matters: columns[0] is treated as primary key.
      */
     void register_column(IColumn* col) {
         columns.push_back(col);
     }
 
     /**
-     * @brief Creates the model's table if it does not already exist.
+     * @brief Creates the model's table
      *
-     * Builds a query like:
+     * Query behind:
      * @code
      * CREATE TABLE IF NOT EXISTS TableName (col1_def, col2_def, ...);
      * @endcode
      *
-     * @param db Open SQLite database handle.
-     * @return true on success, false on error (prints error to std::cerr).
+     * @return true on success, false on error
      */
     bool create_table(sqlite3* db) {
         std::string sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (";
@@ -98,12 +84,11 @@ public:
     /**
      * @brief Inserts the current model values as a new row.
      *
-     * Builds an INSERT statement with placeholders and binds each column value:
+     * INSERT statement with placeholders and binds each column value:
      * @code
      * INSERT INTO TableName (c1, c2, ...) VALUES (?, ?, ...);
      * @endcode
      *
-     * @param db Open SQLite database handle.
      * @return true if the INSERT executed successfully, false otherwise.
      */
     bool save(sqlite3* db) {
