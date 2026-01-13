@@ -26,49 +26,6 @@ std::string get_sql_type() {
     }
 }
 
-class Model {
-protected:
-    std::string table_name;
-    std::vector<IColumn*> columns;
-
-    bool execute_sql(sqlite3* db, const std::string& sql) {
-        char* errMsg = nullptr;
-        int rc = sqlite3_exec(db, sql.c_str(), 0, 0, &errMsg);
-        
-        if (rc != SQLITE_OK) {
-            std::cerr << "SQL Error in " << table_name << ": " << errMsg << std::endl;
-            std::cerr << "Query was: " << sql << std::endl;
-            sqlite3_free(errMsg);
-            return false;
-        }
-        return true;
-    }
-
-public:
-    Model(std::string t_name) : table_name(std::move(t_name)) {
-
-    }
-
-    void register_column(IColumn* col) {
-        columns.push_back(col);
-    }
-
-    bool create_table(sqlite3* db) {
-        std::stringstream ss;
-        ss << "CREATE TABLE IF NOT EXISTS " << table_name << " (";
-        for (size_t i = 0; i < columns.size(); ++i) {
-            ss << columns[i]->get_definition();
-
-            if (i < columns.size() - 1) {
-                ss << ", ";
-            }
-        }
-        ss << ");";
-        
-        return execute_sql(db, ss.str());
-    }
-};
-
 template <typename T>
 class Column : public IColumn {
 private:
@@ -87,6 +44,20 @@ public:
 
     std::string get_definition() const override {
         return name + " " + get_sql_type<T>() + (constraints.empty() ? "" : " " + constraints);
+    }
+
+    void load_from_stmt(sqlite3_stmt* stmt, int index) override {
+        if constexpr (std::is_same_v<T, int>) {
+            value = sqlite3_column_int(stmt, index);
+        }
+        else if constexpr (std::is_same_v<T, double>) {
+            value = sqlite3_column_double(stmt, index);
+        }
+        else if constexpr (std::is_same_v<T, std::string>) {
+            const unsigned char* text = sqlite3_column_text(stmt, index);
+            // Handle NULLs safely
+            value = text ? reinterpret_cast<const char*>(text) : "";
+        }
     }
 };
 
