@@ -65,7 +65,7 @@ public:
         }
 
         for (size_t i = 0; i < columns.size(); ++i) {
-            columns[i]->bind_value(stmt, i + 1); 
+            columns[i]->bindValue(stmt, i + 1); 
         }
 
         bool success = (sqlite3_step(stmt) == SQLITE_DONE);
@@ -93,7 +93,7 @@ public:
         if (sqlite3_step(stmt) == SQLITE_ROW) {
             found = true;
             for (size_t i = 0; i < columns.size(); ++i) {
-                columns[i]->load_from_stmt(stmt, i);
+                columns[i]->loadFromSQL(stmt, i);
             }
         }
 
@@ -123,10 +123,10 @@ public:
         // Bind data values
         int bind_index = 1;
         for (size_t i = 1; i < columns.size(); ++i) {
-            columns[i]->bind_value(stmt, bind_index++);
+            columns[i]->bindValue(stmt, bind_index++);
         }
         // Bind ID at the end
-        columns[0]->bind_value(stmt, bind_index);
+        columns[0]->bindValue(stmt, bind_index);
 
         bool success = (sqlite3_step(stmt) == SQLITE_DONE);
         if (!success) std::cerr << "Update Exec Error: " << sqlite3_errmsg(db) << std::endl;
@@ -147,7 +147,7 @@ public:
             return false;
         }
 
-        columns[0]->bind_value(stmt, 1);
+        columns[0]->bindValue(stmt, 1);
 
         bool success = (sqlite3_step(stmt) == SQLITE_DONE);
         if (!success) std::cerr << "Delete Exec Error: " << sqlite3_errmsg(db) << std::endl;

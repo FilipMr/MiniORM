@@ -3,6 +3,19 @@
 #include <sqlite3.h>
 
 
+
+//for displaying columns and values
+int printCallback(void*, int argc, char** argv, char** colName) {
+    for (int i = 0; i < argc; i++) {
+        std::cout << colName[i] << "=" << (argv[i] ? argv[i] : "NULL");
+        if (i + 1 < argc) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << std::endl;
+    return 0;
+}
+
 void exec(sqlite3* db, const std::string& sql) {
     char* err = nullptr;
     int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err);
@@ -11,16 +24,6 @@ void exec(sqlite3* db, const std::string& sql) {
         std::cerr << "SQL error: " << (err ? err : "") << std::endl;
         sqlite3_free(err);
     }
-}
-
-int printCallback(void*, int argc, char** argv, char** colName) {
-    for (int i = 0; i < argc; i++) {
-        std::cout << colName[i] << "="
-                  << (argv[i] ? argv[i] : "NULL");
-        if (i + 1 < argc) std::cout << ", ";
-    }
-    std::cout << std::endl;
-    return 0;
 }
 
 void query(sqlite3* db, const std::string& sql) {
