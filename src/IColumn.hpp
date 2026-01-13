@@ -1,3 +1,12 @@
+#pragma once
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <type_traits>
+#include <sqlite3.h>
+
+// Abstract Column Interface to store diffrent columns
 namespace fm {
 
 class IColumn {
