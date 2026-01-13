@@ -12,19 +12,6 @@ protected:
     std::string table_name;
     std::vector<IColumn*> columns;
 
-    bool execute_sql(sqlite3* db, const std::string& sql) {
-        char* errMsg = nullptr;
-        int rc = sqlite3_exec(db, sql.c_str(), 0, 0, &errMsg);
-        
-        if (rc != SQLITE_OK) {
-            std::cerr << "SQL Error in " << table_name << ": " << errMsg << std::endl;
-            std::cerr << "Query was: " << sql << std::endl;
-            sqlite3_free(errMsg);
-            return false;
-        }
-        return true;
-    }
-
 public:
     Model(std::string t_name) : table_name(std::move(t_name)) {
 
@@ -79,7 +66,6 @@ public:
         sqlite3_finalize(stmt);
         return success;
     }
-};
 };
 
 }
