@@ -5,7 +5,7 @@
 namespace fm {
 
 template <typename T>
-std::string get_sql_type() {
+std::string getSQLType() {
     if constexpr (std::is_same_v<T, int>) {
         return "INTEGER";
     }
@@ -28,17 +28,17 @@ private:
     T value; 
 
 public:
-    Column(Model* owner, std::string col_name, std::string col_constraints = "") : name(std::move(col_name)), constraints(std::move(col_constraints)) {
+    Column(Model* owner, std::string colName, std::string colConstraints = "") : name(std::move(colName)), constraints(std::move(colConstraints)) {
         owner->register_column(this);
     }
 
-    // 1. Assignment Operator: Allows "user.age = 30;"
+    //alows "user.age = 30;"
     Column<T>& operator=(const T& val) { 
         value = val; 
         return *this; 
     }
 
-    // 2. Implicit Conversion: Allows "int x = user.age;" or "cout << user.name"
+    //allows "int x = user.age;" or "cout << user.name"
     operator T() const { 
         return value; 
     }
@@ -48,7 +48,7 @@ public:
     }
 
     std::string getDefinition() const override {
-        return name + " " + get_sql_type<T>() + (constraints.empty() ? "" : " " + constraints);
+        return name + " " + getSQLType<T>() + (constraints.empty() ? "" : " " + constraints);
     }
 
     void bindValue(sqlite3_stmt* stmt, int index) const override {
@@ -72,8 +72,11 @@ public:
         }
         else if constexpr (std::is_same_v<T, std::string>) {
             const unsigned char* text = sqlite3_column_text(stmt, index);
-            // Handle NULLs safely
-            value = text ? reinterpret_cast<const char*>(text) : "";
+            if (text) {
+                value = reinterpret_cast<const char*>(text);
+            }
+            else
+                value = "";
         }
     }
 };
