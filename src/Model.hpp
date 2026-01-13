@@ -30,7 +30,9 @@ public:
         std::string sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (";
         for (size_t i = 0; i < columns.size(); ++i) {
             sql += columns[i]->getDefinition();
-            if (i < columns.size() - 1) sql += ", ";
+            if (i < columns.size() - 1) {
+                sql += ", ";
+            }
         }
         sql += ");";
         
@@ -69,7 +71,9 @@ public:
         }
 
         bool success = (sqlite3_step(stmt) == SQLITE_DONE);
-        if (!success) std::cerr << "Save Exec Error: " << sqlite3_errmsg(db) << std::endl;
+        if (!success){
+            std::cerr << "Save Exec Error: " << sqlite3_errmsg(db) << std::endl;
+        }
         
         sqlite3_finalize(stmt);
         return success;
@@ -77,7 +81,9 @@ public:
 
     //read but assumes that the first column is the primary key
     bool find(sqlite3* db, int id) {
-        if (columns.empty()) return false;
+        if (columns.empty()) {
+            return false;
+        }
 
         std::string sql = "SELECT * FROM " + tableName + " WHERE " + columns[0]->getName() + " = ?;";
 
@@ -103,14 +109,18 @@ public:
 
     //update each field if first column is the primary key
     bool update(sqlite3* db) {
-        if (columns.empty()) return false;
+        if (columns.empty()) {
+            return false;
+        }
 
         std::string sql = "UPDATE " + tableName + " SET ";
         
         //skip ID (index 0) in the SET clause
         for (size_t i = 1; i < columns.size(); ++i) {
             sql += columns[i]->getName() + " = ?";
-            if (i < columns.size() - 1) sql += ", ";
+            if (i < columns.size() - 1) {
+                sql += ", ";
+            }
         }
         sql += " WHERE " + columns[0]->getName() + " = ?;";
 
@@ -129,7 +139,9 @@ public:
         columns[0]->bindValue(stmt, bind_index);
 
         bool success = (sqlite3_step(stmt) == SQLITE_DONE);
-        if (!success) std::cerr << "Update Exec Error: " << sqlite3_errmsg(db) << std::endl;
+        if (!success) {
+            std::cerr << "Update Exec Error: " << sqlite3_errmsg(db) << std::endl;
+        }
 
         sqlite3_finalize(stmt);
         return success;
@@ -137,7 +149,9 @@ public:
 
     //delete if first column is the primary key
     bool remove(sqlite3* db) {
-        if (columns.empty()) return false;
+        if (columns.empty()) {
+            return false;
+        }
 
         std::string sql = "DELETE FROM " + tableName + " WHERE " + columns[0]->getName() + " = ?;";
 
@@ -150,7 +164,9 @@ public:
         columns[0]->bindValue(stmt, 1);
 
         bool success = (sqlite3_step(stmt) == SQLITE_DONE);
-        if (!success) std::cerr << "Delete Exec Error: " << sqlite3_errmsg(db) << std::endl;
+        if (!success) {
+            std::cerr << "Delete Exec Error: " << sqlite3_errmsg(db) << std::endl;
+        }
 
         sqlite3_finalize(stmt);
         return success;
