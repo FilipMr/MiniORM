@@ -1,7 +1,7 @@
 # MiniORM (C++)
 
 A small educational ORM written in C++.
-Supports basic CRUD, simple query building, map tables to classes.
+Supports basic CRUD, map tables to classes and objects to records.
 Works on SQLite via sqlite3 library adding an abstract DB layer.
 
 ---
