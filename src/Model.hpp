@@ -7,25 +7,75 @@
 
 namespace fm {
 
+/**
+ * @brief Base class for database-backed models (lightweight ORM-style).
+ *
+ * A Model represents a SQLite table and a collection of registered columns.
+ * Columns (implementing IColumn) typically register themselves into a Model
+ * during construction (see fm::Column constructor).
+ *
+ * @note
+ * This implementation assumes the first registered column (index 0) is the
+ * primary key for operations like find(), update(), and remove().
+ */
 class Model {
 protected:
-    std::string tableName;
-    std::vector<IColumn*> columns;
+    std::string tableName;            /**< SQLite table name */
+    std::vector<IColumn*> columns;    /**< Registered columns for this model */
 
 public:
+    /**
+     * @brief Constructs a model with a default table name.
+     *
+     * Default table name is `"DefaultTable"`.
+     */
     Model() : tableName("DefaultTable") {}
 
+    /**
+     * @brief Constructs a model with a specific table name.
+     *
+     * @param tabName Name of the SQLite table.
+     */
     Model(std::string tabName) : tableName(std::move(tabName)) {}
 
+    /**
+     * @brief Sets/changes the table name for this model.
+     *
+     * @param tabName New SQLite table name.
+     */
     void setTableName(std::string tabName) {
         tableName = std::move(tabName);
     }
 
+    /**
+     * @brief Registers a column with this model.
+     *
+     * Columns call this automatically in their constructor:
+     * @code
+     * owner->register_column(this);
+     * @endcode
+     *
+     * @param col Pointer to a column (must remain valid for the Model lifetime).
+     *
+     * @warning
+     * The Model does not own the column pointers and does not delete them.
+     * Also, registration order matters: columns[0] is treated as primary key.
+     */
     void register_column(IColumn* col) {
         columns.push_back(col);
     }
 
-    //create table
+    /**
+     * @brief Creates the model's table if it does not already exist.
+     *
+     * Builds a query like:
+     * @code
+     * CREATE TABLE IF NOT EXISTS TableName (col1_def, col2_def, ...);
+     * @endcode
+     *
+     * @param db Open SQLite database handle.
+     * @return true on success, false on error (prints error to std::cerr).
+     */
     bool create_table(sqlite3* db) {
         std::string sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (";
         for (size_t i = 0; i < columns.size(); ++i) {
@@ -35,7 +85,7 @@ public:
             }
         }
         sql += ");";
-        
+
         char* errMsg = nullptr;
         if (sqlite3_exec(db, sql.c_str(), 0, 0, &errMsg) != SQLITE_OK) {
             std::cerr << "Create Table Error: " << errMsg << std::endl;
@@ -45,14 +95,24 @@ public:
         return true;
     }
 
-    //write
+    /**
+     * @brief Inserts the current model values as a new row.
+     *
+     * Builds an INSERT statement with placeholders and binds each column value:
+     * @code
+     * INSERT INTO TableName (c1, c2, ...) VALUES (?, ?, ...);
+     * @endcode
+     *
+     * @param db Open SQLite database handle.
+     * @return true if the INSERT executed successfully, false otherwise.
+     */
     bool save(sqlite3* db) {
         std::string sql = "INSERT INTO " + tableName + " (";
         std::string placeholders = ") VALUES (";
 
         for (size_t i = 0; i < columns.size(); ++i) {
             sql += columns[i]->getName();
-            placeholders += "?"; 
+            placeholders += "?";
             if (i < columns.size() - 1) {
                 sql += ", ";
                 placeholders += ", ";
@@ -66,26 +126,44 @@ public:
             return false;
         }
 
+        // SQLite bind indices are 1-based.
         for (size_t i = 0; i < columns.size(); ++i) {
-            columns[i]->bindValue(stmt, i + 1); 
+            columns[i]->bindValue(stmt, static_cast<int>(i) + 1);
         }
 
         bool success = (sqlite3_step(stmt) == SQLITE_DONE);
-        if (!success){
+        if (!success) {
             std::cerr << "Save Exec Error: " << sqlite3_errmsg(db) << std::endl;
         }
-        
+
         sqlite3_finalize(stmt);
         return success;
     }
 
-    //read but assumes that the first column is the primary key
+    /**
+     * @brief Loads a row by primary key into this model instance.
+     *
+     * Assumes the first registered column is the primary key and is integer-based.
+     * Executes:
+     * @code
+     * SELECT * FROM TableName WHERE pk = ?;
+     * @endcode
+     *
+     * On success, each column is populated using IColumn::loadFromSQL().
+     *
+     * @param db Open SQLite database handle.
+     * @param id Primary key value to search for.
+     * @return true if a matching row was found and loaded, false otherwise.
+     *
+     * @warning Requires at least one registered column.
+     */
     bool find(sqlite3* db, int id) {
         if (columns.empty()) {
             return false;
         }
 
-        std::string sql = "SELECT * FROM " + tableName + " WHERE " + columns[0]->getName() + " = ?;";
+        std::string sql =
+            "SELECT * FROM " + tableName + " WHERE " + columns[0]->getName() + " = ?;";
 
         sqlite3_stmt* stmt;
         if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -98,8 +176,9 @@ public:
         bool found = false;
         if (sqlite3_step(stmt) == SQLITE_ROW) {
             found = true;
+            // SQLite column indices are 0-based.
             for (size_t i = 0; i < columns.size(); ++i) {
-                columns[i]->loadFromSQL(stmt, i);
+                columns[i]->loadFromSQL(stmt, static_cast<int>(i));
             }
         }
 
@@ -107,15 +186,31 @@ public:
         return found;
     }
 
-    //update each field if first column is the primary key
+    /**
+     * @brief Updates the row identified by the primary key (first column).
+     *
+     * Builds:
+     * @code
+     * UPDATE TableName SET c2=?, c3=?, ... WHERE pk=?;
+     * @endcode
+     *
+     * The primary key column (index 0) is excluded from the SET clause and
+     * is bound last in the WHERE clause.
+     *
+     * @param db Open SQLite database handle.
+     * @return true if the UPDATE executed successfully, false otherwise.
+     *
+     * @warning Requires at least one registered column.
+     * @note This does not check whether any row was actually modified.
+     */
     bool update(sqlite3* db) {
         if (columns.empty()) {
             return false;
         }
 
         std::string sql = "UPDATE " + tableName + " SET ";
-        
-        //skip ID (index 0) in the SET clause
+
+        // Skip ID (index 0) in the SET clause.
         for (size_t i = 1; i < columns.size(); ++i) {
             sql += columns[i]->getName() + " = ?";
             if (i < columns.size() - 1) {
@@ -130,12 +225,12 @@ public:
             return false;
         }
 
-        //bind data values
+        // Bind non-PK values first.
         int bind_index = 1;
         for (size_t i = 1; i < columns.size(); ++i) {
             columns[i]->bindValue(stmt, bind_index++);
         }
-        //bind ID at the end
+        // Bind PK at the end.
         columns[0]->bindValue(stmt, bind_index);
 
         bool success = (sqlite3_step(stmt) == SQLITE_DONE);
@@ -147,13 +242,27 @@ public:
         return success;
     }
 
-    //delete if first column is the primary key
+    /**
+     * @brief Deletes the row identified by the primary key (first column).
+     *
+     * Executes:
+     * @code
+     * DELETE FROM TableName WHERE pk = ?;
+     * @endcode
+     *
+     * @param db Open SQLite database handle.
+     * @return true if the DELETE executed successfully, false otherwise.
+     *
+     * @warning Requires at least one registered column.
+     * @note This does not check whether any row was actually deleted.
+     */
     bool remove(sqlite3* db) {
         if (columns.empty()) {
             return false;
         }
 
-        std::string sql = "DELETE FROM " + tableName + " WHERE " + columns[0]->getName() + " = ?;";
+        std::string sql =
+            "DELETE FROM " + tableName + " WHERE " + columns[0]->getName() + " = ?;";
 
         sqlite3_stmt* stmt;
         if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -173,4 +282,4 @@ public:
     }
 };
 
-}
+} // namespace fm
