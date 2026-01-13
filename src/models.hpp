@@ -61,5 +61,19 @@ public:
     void register_column(IColumn* col) {
         columns.push_back(col);
     }
-    
+
+    bool create_table(sqlite3* db) {
+        std::stringstream ss;
+        ss << "CREATE TABLE IF NOT EXISTS " << table_name << " (";
+        for (size_t i = 0; i < columns.size(); ++i) {
+            ss << columns[i]->get_definition();
+            
+            if (i < columns.size() - 1) {
+                ss << ", ";
+            }
+        }
+        ss << ");";
+        
+        return execute_sql(db, ss.str());
+    }
 }
