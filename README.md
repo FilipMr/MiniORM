@@ -20,7 +20,6 @@ This Mini ORM handles the following types:
 - int
 - double
 - string
-- char
 
 ---
 
