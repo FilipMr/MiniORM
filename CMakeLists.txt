@@ -10,3 +10,4 @@ add_executable(orm_test tests/orm_test.cpp)
 
 target_link_libraries(orm PRIVATE sqlite3)
 target_link_libraries(rawsql_test PRIVATE sqlite3)
+target_link_libraries(orm_test PRIVATE sqlite3)
