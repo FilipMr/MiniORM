@@ -25,6 +25,7 @@ int printCallback(void*, int argc, char** argv, char** colName) {
     return 0;
 }
 
+//quick helper for executing the queries with raw sql
 void query(sqlite3* db, const std::string& sql) {
     char* err = nullptr;
     sqlite3_exec(db, sql.c_str(), printCallback, nullptr, &err);
