@@ -46,6 +46,18 @@ public:
         return name + " " + get_sql_type<T>() + (constraints.empty() ? "" : " " + constraints);
     }
 
+    void bind_value(sqlite3_stmt* stmt, int index) const override {
+        if constexpr (std::is_same_v<T, int>) {
+            sqlite3_bind_int(stmt, index, value);
+        }
+        else if constexpr (std::is_same_v<T, double>) {
+            sqlite3_bind_double(stmt, index, value);
+        }
+        else if constexpr (std::is_same_v<T, std::string>) {
+            sqlite3_bind_text(stmt, index, value.c_str(), -1, SQLITE_TRANSIENT);
+        }
+    }
+
     void load_from_stmt(sqlite3_stmt* stmt, int index) override {
         if constexpr (std::is_same_v<T, int>) {
             value = sqlite3_column_int(stmt, index);
