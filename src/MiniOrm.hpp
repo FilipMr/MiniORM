@@ -1,12 +1,6 @@
 #pragma once
-// #include <iostream>
-// #include <vector>
-// #include <string>
-// #include <sstream>
-// #include <type_traits>
-// #include <sqlite3.h>
-
 #include "IColumn.hpp"
+#include "Model.hpp"
 
 namespace fm {
 
@@ -38,11 +32,22 @@ public:
         owner->register_column(this);
     }
 
-    std::string get_name() const override { 
+    // 1. Assignment Operator: Allows "user.age = 30;"
+    Column<T>& operator=(const T& val) { 
+        value = val; 
+        return *this; 
+    }
+
+    // 2. Implicit Conversion: Allows "int x = user.age;" or "cout << user.name"
+    operator T() const { 
+        return value; 
+    }
+
+    std::string getName() const override { 
         return name; 
     }
 
-    std::string get_definition() const override {
+    std::string getDefinition() const override {
         return name + " " + get_sql_type<T>() + (constraints.empty() ? "" : " " + constraints);
     }
 
