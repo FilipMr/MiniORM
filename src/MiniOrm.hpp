@@ -1,10 +1,12 @@
 #pragma once
-#include <iostream>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <type_traits>
-#include <sqlite3.h>
+// #include <iostream>
+// #include <vector>
+// #include <string>
+// #include <sstream>
+// #include <type_traits>
+// #include <sqlite3.h>
+
+#include "IColumn.hpp"
 
 namespace fm {
 
@@ -23,13 +25,6 @@ std::string get_sql_type() {
         return "BLOB";
     }
 }
-
-// Abstract Column Interface to store diffrent columns
-struct IColumn {
-    virtual std::string get_name() const = 0;
-    virtual std::string get_definition() const = 0;
-    virtual ~IColumn() = default;
-};
 
 class Model {
 protected:
