@@ -23,4 +23,17 @@ std::string get_sql_type() {
     }
 }
 
+// Abstract Column Interface to store diffrent columns
+struct IColumn {
+    virtual std::string get_name() {
+        const = 0;
+    } 
+    virtual std::string get_definition() {
+        const = 0;
+    }
+    virtual ~IColumn() = default;
+};
+
+
+
 }
