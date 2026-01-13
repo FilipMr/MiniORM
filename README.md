@@ -34,7 +34,7 @@ make
 
 ## Tests
 
-The file rawsql_test.cpp shows the basic usage of sqlite3
+The file rawsql_test.cpp shows the basic usage of sqlite3 - Raw SQL
 
 ```sh
 cd build
