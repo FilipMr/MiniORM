@@ -13,8 +13,12 @@ protected:
     std::vector<IColumn*> columns;
 
 public:
-    Model(std::string t_name) : table_name(std::move(t_name)) {
+    Model() : table_name("DefaultTable") {}
 
+    Model(std::string t_name) : table_name(std::move(t_name)) {}
+
+    void setTableName(std::string t_name) {
+        table_name = std::move(t_name);
     }
 
     void register_column(IColumn* col) {
