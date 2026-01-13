@@ -9,25 +9,25 @@ namespace fm {
 
 class Model {
 protected:
-    std::string table_name;
+    std::string tableName;
     std::vector<IColumn*> columns;
 
 public:
-    Model() : table_name("DefaultTable") {}
+    Model() : tableName("DefaultTable") {}
 
-    Model(std::string t_name) : table_name(std::move(t_name)) {}
+    Model(std::string tabName) : tableName(std::move(tabName)) {}
 
-    void setTableName(std::string t_name) {
-        table_name = std::move(t_name);
+    void setTableName(std::string tabName) {
+        tableName = std::move(tabName);
     }
 
     void register_column(IColumn* col) {
         columns.push_back(col);
     }
 
-    // create table
+    //create table
     bool create_table(sqlite3* db) {
-        std::string sql = "CREATE TABLE IF NOT EXISTS " + table_name + " (";
+        std::string sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (";
         for (size_t i = 0; i < columns.size(); ++i) {
             sql += columns[i]->getDefinition();
             if (i < columns.size() - 1) sql += ", ";
@@ -43,9 +43,9 @@ public:
         return true;
     }
 
-    // write
+    //write
     bool save(sqlite3* db) {
-        std::string sql = "INSERT INTO " + table_name + " (";
+        std::string sql = "INSERT INTO " + tableName + " (";
         std::string placeholders = ") VALUES (";
 
         for (size_t i = 0; i < columns.size(); ++i) {
@@ -75,11 +75,11 @@ public:
         return success;
     }
 
-    // read but assumes that the first column is the primary key
+    //read but assumes that the first column is the primary key
     bool find(sqlite3* db, int id) {
         if (columns.empty()) return false;
 
-        std::string sql = "SELECT * FROM " + table_name + " WHERE " + columns[0]->getName() + " = ?;";
+        std::string sql = "SELECT * FROM " + tableName + " WHERE " + columns[0]->getName() + " = ?;";
 
         sqlite3_stmt* stmt;
         if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -101,13 +101,13 @@ public:
         return found;
     }
 
-    // update each field if first column is the primary key
+    //update each field if first column is the primary key
     bool update(sqlite3* db) {
         if (columns.empty()) return false;
 
-        std::string sql = "UPDATE " + table_name + " SET ";
+        std::string sql = "UPDATE " + tableName + " SET ";
         
-        // Skip ID (index 0) in the SET clause
+        //skip ID (index 0) in the SET clause
         for (size_t i = 1; i < columns.size(); ++i) {
             sql += columns[i]->getName() + " = ?";
             if (i < columns.size() - 1) sql += ", ";
@@ -120,12 +120,12 @@ public:
             return false;
         }
 
-        // Bind data values
+        //bind data values
         int bind_index = 1;
         for (size_t i = 1; i < columns.size(); ++i) {
             columns[i]->bindValue(stmt, bind_index++);
         }
-        // Bind ID at the end
+        //bind ID at the end
         columns[0]->bindValue(stmt, bind_index);
 
         bool success = (sqlite3_step(stmt) == SQLITE_DONE);
@@ -135,11 +135,11 @@ public:
         return success;
     }
 
-    // delete if first column is the primary key
+    //delete if first column is the primary key
     bool remove(sqlite3* db) {
         if (columns.empty()) return false;
 
-        std::string sql = "DELETE FROM " + table_name + " WHERE " + columns[0]->getName() + " = ?;";
+        std::string sql = "DELETE FROM " + tableName + " WHERE " + columns[0]->getName() + " = ?;";
 
         sqlite3_stmt* stmt;
         if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
