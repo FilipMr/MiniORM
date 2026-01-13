@@ -7,15 +7,14 @@ namespace fm {
 /**
  * @brief Abstract interface representing a database column.
  *
- * This interface provides a common API for all column types
- * used by the ORM system. Concrete implementations (such as
- * fm::Column<T>) handle:
+ * Provides a common api for all column types
+ * used by the this MiniORM system.
+ * Concrete implementations (such as fm::Column<T>) handle:
  *
  * - SQL definition generation
  * - Value binding to SQLite statements
  * - Loading values from query results
  *
- * This allows the Model class to treat all columns uniformly.
  */
 class IColumn {
 public:
